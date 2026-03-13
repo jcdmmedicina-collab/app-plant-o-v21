@@ -3,7 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <title>Sistema de Prontuário</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+async function excluirProtocoloAtual(){
+
+if(!protocoloEditando){
+alert("Nenhum protocolo aberto")
+return
+}
+
+if(!confirm("Deseja excluir este protocolo?")) return
+
+await client
+.from("protocolos")
+.delete()
+.eq("id",protocoloEditando)
+
+alert("Protocolo excluído")
+
+protocoloEditando=null
+
+titulo_protocolo.value=""
+conteudo_protocolo.value=""
+
+document.getElementById("editor_protocolo").style.display="none"
+
+}
+
+function fecharEditor(){
+
+titulo_protocolo.value=""
+conteudo_protocolo.value=""
+
+protocoloEditando=null
+
+document.getElementById("editor_protocolo").style.display="none"
+
+}
+
+</script>
 
 <style>
 body{font-family:Arial;margin:0;background:#eef2f5}
@@ -73,7 +111,9 @@ button{margin-top:10px;padding:8px 12px;border:none;border-radius:6px;background
 <h3>Novo Protocolo</h3>
 <input id="titulo_protocolo" placeholder="Título do protocolo">
 <textarea id="conteudo_protocolo" placeholder="Conteúdo do protocolo"></textarea>
-<button onclick="salvarProtocolo()">Salvar protocolo</button>
+<button onclick="salvarProtocolo()">Salvar</button>
+<button onclick="excluirProtocoloAtual()" class="btn-excluir">Excluir</button>
+<button onclick="fecharEditor()">Fechar</button>
 </div>
 
 <h3>Pesquisar protocolo</h3>
@@ -106,11 +146,14 @@ document.getElementById("aba_"+aba).classList.remove("hidden")
 }
 
 function abrirAbaProtocolos(){
+
 mostrarAba("protocolos")
+
 titulo_protocolo.value=""
 conteudo_protocolo.value=""
-document.getElementById("editor_protocolo").style.display="none"
-carregarProtocolos()
+
+document.getElementById("editor_protocolo").style.display="block"
+
 }
 
 function novoPaciente(){
@@ -198,29 +241,17 @@ renderProtocolos(protocolos)
 }
 
 function renderProtocolos(lista){
-
 lista_protocolos.innerHTML=""
-
 lista.forEach(p=>{
-
 let div=document.createElement("div")
 div.className="card"
-
 div.innerHTML=`
 <b>${p.titulo}</b>
 <br><br>
-
 <button onclick="abrirProtocolo(${p.id})">Abrir</button>
-
-<button class="btn-excluir" onclick="excluirProtocolo(${p.id})">
-Excluir
-</button>
 `
-
 lista_protocolos.appendChild(div)
-
 })
-
 }
 
 async function abrirProtocolo(id){
@@ -237,26 +268,21 @@ return
 }
 
 document.getElementById("editor_protocolo").style.display="block"
-
-titulo_protocolo.value=data.titulo || ""
-conteudo_protocolo.value=data.conteudo || ""
+document.getElementById("titulo_protocolo").value = data.titulo || ""
+document.getElementById("conteudo_protocolo").value = data.conteudo || ""
 
 protocoloEditando=id
 
 }
 
-async function excluirProtocolo(id){
+mostrarAba("protocolos")
 
-if(!confirm("Deseja realmente excluir este protocolo?")) return
+titulo_protocolo.value=data.titulo
+conteudo_protocolo.value=data.conteudo
 
-await client
-.from("protocolos")
-.delete()
-.eq("id",id)
+document.getElementById("editor_protocolo").style.display="block"
 
-alert("Protocolo excluído")
-
-carregarProtocolos()
+protocoloEditando=id
 
 }
 
@@ -294,31 +320,63 @@ alert("Protocolo salvo")
 
 document.getElementById("editor_protocolo").style.display="none"
 
-carregarProtocolos()
-
 }
 
-async function filtrarProtocolos(){
+function filtrarProtocolos(){
 
 let termo=buscar_protocolo.value.toLowerCase()
 
-const {data}=await client
-.from("protocolos")
-.select("*")
-.order("id",{ascending:false})
+if(termo.length===0){
+lista_protocolos.innerHTML=""
+return
+}
 
-protocolos=data||[]
+carregarProtocolos()
 
-let filtrados=protocolos.filter(p=>
-p.titulo.toLowerCase().includes(termo)
-)
-
+let filtrados=protocolos.filter(p=>p.titulo.toLowerCase().includes(termo))
 renderProtocolos(filtrados)
-
 }
 
 window.onload=()=>{
 carregarPacientes()
+}
+
+
+
+async function excluirProtocoloAtual(){
+
+if(!protocoloEditando){
+alert("Nenhum protocolo aberto")
+return
+}
+
+if(!confirm("Deseja excluir este protocolo?")) return
+
+await client
+.from("protocolos")
+.delete()
+.eq("id",protocoloEditando)
+
+alert("Protocolo excluído")
+
+protocoloEditando=null
+
+titulo_protocolo.value=""
+conteudo_protocolo.value=""
+
+document.getElementById("editor_protocolo").style.display="none"
+
+}
+
+function fecharEditor(){
+
+titulo_protocolo.value=""
+conteudo_protocolo.value=""
+
+protocoloEditando=null
+
+document.getElementById("editor_protocolo").style.display="none"
+
 }
 
 </script>
